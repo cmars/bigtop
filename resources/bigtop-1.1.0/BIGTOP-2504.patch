@@ -1,0 +1,43 @@
+From 4747169ccc3c257820d2e5f4743cfd5c3370b733 Mon Sep 17 00:00:00 2001
+From: Pete Vander Giessen <petevg@gmail.com>
+Date: Tue, 19 Jul 2016 16:40:35 -0400
+Subject: [PATCH] BIGTOP-2504: Kafka bind interface option (closes #134)
+
+Signed-off-by: Kevin W Monroe <kevin.monroe@canonical.com>
+---
+ bigtop-deploy/puppet/modules/kafka/manifests/init.pp           | 3 ++-
+ bigtop-deploy/puppet/modules/kafka/templates/server.properties | 4 ++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/bigtop-deploy/puppet/modules/kafka/manifests/init.pp b/bigtop-deploy/puppet/modules/kafka/manifests/init.pp
+index 482b51b..736cfe0 100644
+--- a/bigtop-deploy/puppet/modules/kafka/manifests/init.pp
++++ b/bigtop-deploy/puppet/modules/kafka/manifests/init.pp
+@@ -22,9 +22,10 @@
+   }
+ 
+   class server(
++      $bind_addr = undef,
+       $broker_id = "0",
+       $port = "9092",
+-      $zookeeper_connection_string = "localhost:2181"
++      $zookeeper_connection_string = "localhost:2181",
+     ) {
+ 
+     package { 'kafka':
+diff --git a/bigtop-deploy/puppet/modules/kafka/templates/server.properties b/bigtop-deploy/puppet/modules/kafka/templates/server.properties
+index a30e970..dbda311 100644
+--- a/bigtop-deploy/puppet/modules/kafka/templates/server.properties
++++ b/bigtop-deploy/puppet/modules/kafka/templates/server.properties
+@@ -25,7 +25,11 @@ broker.id=<%= @broker_id %>
+ port=<%= @port %>
+ 
+ # Hostname the broker will bind to. If not set, the server will bind to all interfaces
++<% if @bind_addr.nil? -%>
+ #host.name=localhost
++<% else -%>
++host.name=<%= @bind_addr %>
++<% end -%>
+ 
+ # Hostname the broker will advertise to producers and consumers. If not set, it uses the
+ # value for "host.name" if configured.  Otherwise, it will use the value returned from

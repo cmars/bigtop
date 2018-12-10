@@ -1,0 +1,133 @@
+From 0bad86016e87265b8185ddc51e79e684eca7f13f Mon Sep 17 00:00:00 2001
+From: Pete Vander Giessen <petevg@gmail.com>
+Date: Thu, 16 Jun 2016 15:46:50 -0400
+Subject: [PATCH] BIGTOP-2478: Zookeeper does not have any smoke tests (closes
+ #122)
+
+These tests are very basic for now. We just run "zkServer.sh status" and
+verify that the output is reasonable.
+
+More complex tests are blocked by either a) needing multiple Zookeeper
+nodes (doesn't really make sense for a smoke test), or b) needing to
+have Zookeeper REST spun up, which Bigtop does not currently do.
+
+Fixed test name.
+
+TestSpark -> TestZookeeper
+---
+ .../smoke-tests/zookeeper/TestZookeeper.groovy     | 66 ++++++++++++++++++++++
+ bigtop-tests/smoke-tests/zookeeper/build.gradle    | 32 +++++++++++
+ 2 files changed, 98 insertions(+)
+ create mode 100644 bigtop-tests/smoke-tests/zookeeper/TestZookeeper.groovy
+ create mode 100644 bigtop-tests/smoke-tests/zookeeper/build.gradle
+
+diff --git a/bigtop-tests/smoke-tests/zookeeper/TestZookeeper.groovy b/bigtop-tests/smoke-tests/zookeeper/TestZookeeper.groovy
+new file mode 100644
+index 0000000..28be70a
+--- /dev/null
++++ b/bigtop-tests/smoke-tests/zookeeper/TestZookeeper.groovy
+@@ -0,0 +1,66 @@
++/**
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import org.junit.BeforeClass
++import org.junit.AfterClass
++
++import org.apache.bigtop.itest.shell.Shell
++import static org.junit.Assert.assertTrue
++import org.junit.Test
++import org.apache.commons.logging.LogFactory
++import org.apache.commons.logging.Log
++
++import static org.apache.bigtop.itest.LogErrorsUtils.logError
++
++class TestZookeeper {
++  static private Log LOG = LogFactory.getLog(Object.class)
++
++  static Shell sh = new Shell("/bin/bash -s")
++
++  @BeforeClass
++  static void setUp() {
++    // noop for now.
++  }
++
++  @AfterClass
++  public static void tearDown() {
++    // noop for now
++  }
++
++  @Test
++  void testZkServerStatus() {
++    // Basic test to verify that the server is running, and is in a
++    // state that we expect.
++    LOG.info('Running zkServer.sh status');
++    sh.exec("/usr/lib/zookeeper/bin/zkServer.sh status");
++    logError(sh);
++    assertTrue("Failed ...", sh.getRet() == 0);
++
++    String out = sh.getOut()[0].trim();
++    assertTrue(out.contains("Mode"));
++    // If this is the only Zookeeper node, then we should be in
++    // "standalone" mode. If not, we should be in "leader" or
++    // "follower" mode.
++    assertTrue(
++      out.contains("follower") ||
++      out.contains("leader") ||
++      out.contains("standalone")
++    );
++    LOG.info('zkServer.sh status checks out.');
++  }
++}
+diff --git a/bigtop-tests/smoke-tests/zookeeper/build.gradle b/bigtop-tests/smoke-tests/zookeeper/build.gradle
+new file mode 100644
+index 0000000..4e455cc
+--- /dev/null
++++ b/bigtop-tests/smoke-tests/zookeeper/build.gradle
+@@ -0,0 +1,32 @@
++/**
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++def tests_to_include() {
++  return ["TestZookeeper.groovy"];
++}
++
++sourceSets {
++  test {
++    groovy {
++      srcDirs = ["./"]
++      exclude { FileTreeElement elem -> (doExclude(elem.getName())) }
++    }
++  }
++}
++
++test.doFirst {
++}
