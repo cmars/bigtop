@@ -1,0 +1,89 @@
+includes:
+  - 'layer:basic'
+  - 'layer:metrics'
+  - 'layer:nvidia-cuda'
+  - 'interface:java'
+ignore:
+  - 'tests/unit'
+  - 'tox_unit.ini'
+  - 'unit_test_requirements.txt'
+options:
+  basic:
+    packages:
+      - build-essential # required to build netifaces during pip install
+      - git
+      - puppet-common
+      - unzip
+defines:
+  install_java:
+    type: string
+    default: 'openjdk-8-jdk-headless'
+    description: |
+      Tell this charm to install java, instead of relying on the openjdk charm.
+      This string should match the name of the java package to be installed.
+
+  bigtop_component_list:
+    # XXX this should be a proper array of strings
+    type: string
+    default: 'hadoop'
+    description: 'Space seperated list of bigtop component to be installed'
+
+  bigtop_smoketest_components:
+    type: array
+    items: {type: string}
+    description: |
+        A list of Bigtop components to exercise during the
+        smoke-test action. Available components can be found at:
+        https://github.com/apache/bigtop/tree/master/bigtop-tests/smoke-tests
+
+  groups:
+    description: |
+      A list of system groups to be created during setup.
+    type: array
+    items: {type: string}
+  users:
+    description: |
+      This option defines system users to be created during setup.  The value
+      for this option should be a mapping of usernames to information about
+      the user.  Currently, this only supports a 'groups' item that should be
+      a list of groups to add the user to, with the first being the user's
+      primary group.
+    type: object
+    patternProperties:
+      '^[a-z_][a-z0-9_-]*[$]?$':
+        type: object
+        additionalProperties: false
+        properties:
+          groups:
+            type: array
+            items: {type: string}
+  dirs:
+    description: |
+      This option defines directories to be created during setup.  The value
+      for this option should be a mapping of symbolic identifiers (i.e., not
+      the dir path) to a mapping containing information about the directory,
+      such as the path, permissions bits, owner, and group.  The path can
+      contain references to other defined directories in the form
+      '{dirs[<dir-id>]}', or to config option values in the form
+      '{config[<opt-name>]}'.
+    type: object
+    patternProperties:
+      '.*':
+        type: object
+        additionalProperties: false
+        properties:
+          path: {type: string}
+          perms: {type: integer}
+          owner: {type: string}
+          group: {type: string}
+  ports:
+    description: |
+      This option defines controlled by the service.
+    type: object
+    patternProperties:
+      '.*':
+        type: object
+        additionalProperties: false
+        properties:
+          port: {type: integer}
+          exposed_on: {type: string}

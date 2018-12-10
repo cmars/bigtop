@@ -1,0 +1,7 @@
+reinstall:
+    description: Reinstall packages with the version available in the repo.
+smoke-test:
+    description: |
+      Verify a Bigtop service is working by executing a smoke test. The
+      specific components to test should be configured via the
+      'bigtop_smoketest_components' layer option.
