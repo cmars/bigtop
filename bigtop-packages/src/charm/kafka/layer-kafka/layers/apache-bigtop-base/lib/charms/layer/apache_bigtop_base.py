@@ -185,6 +185,27 @@ class Bigtop(object):
                     release=dist_release,
                     arch=repo_arch
                 )
+        elif bigtop_version == '1.3.0':
+            if hookenv.metadata()['name'] == 'kafka':
+                repo_url = ('https://ci.bigtop.apache.org/'
+                            'job/Bigtop-{version}/DISTRO={dist}-{release},PLATFORM=amd64-slave/'
+                            'lastSuccessfulBuild/artifact/output/apt')
+                # Substitute params.
+                bigtop_repo_url = repo_url.format(
+                    version=self.bigtop_version,
+                    dist=dist_name,
+                    release=dist_release,
+                )
+            else:
+                repo_url = ('http://repos.bigtop.apache.org/releases/'
+                            '{version}/{dist}/{release}/{arch}')
+                # Substitute params.
+                bigtop_repo_url = repo_url.format(
+                    version=self.bigtop_version,
+                    dist=dist_name,
+                    release=dist_release,
+                    arch=repo_arch
+                )
         elif bigtop_version == 'master':
             if repo_arch == "x86_64":
                 bigtop_repo_url = ('https://ci.bigtop.apache.org/'
